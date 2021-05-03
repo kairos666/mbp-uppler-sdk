@@ -1,7 +1,10 @@
-// main library script (central exports)
-export { sayHello, sayGoodbye } from './hello-world';
+import { Order } from './order';
+import { Payment } from './payment'; 
+import { applyMixins } from './utils';
+import { Base } from './base';
 
-// IIFFE
-(function () {
-    console.log('index.js executed');
-})()
+class UpplerSDK extends Base {}
+interface UpplerSDK extends Order, Payment {}
+applyMixins(UpplerSDK, [Order, Payment]);
+
+export default UpplerSDK
