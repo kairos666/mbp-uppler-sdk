@@ -1,0 +1,22 @@
+{
+    "name": "mbp-uppler-sdk",
+    "version": "0.0.1",
+    "description": "Uppler custom SDK",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [
+        "uppler",
+        "sdk"
+    ],
+    "author": "David Maggi <david.maggi@orange.com>",
+    "license": "MIT",
+    "devDependencies": {
+        "typescript": "4.2.4"
+    },
+    "files": [
+        "/dist"
+    ]
+}

@@ -1,1 +1,1 @@
-# mbp-uppler-api
+# mbp-uppler-sdk
