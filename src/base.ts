@@ -35,7 +35,10 @@ export abstract class Base {
     }
     
     protected requestHandler(requestConfig:AxiosRequestConfig):Promise<any> {
-        const baseRequestConfig:AxiosRequestConfig = {};
+        // TODO WIP dynamic token
+        const baseRequestConfig:AxiosRequestConfig = {
+            params: { access_token: 'YWFkZDZiYmNjNmE4NWM3MDE2MDI1YjVjMGU5MDRiZmEzY2U5NmFjNzg0NjYwMjgxOTEzMDE5NGIyZjk3Yjg5OA' }
+        };
 
         // adds basic auth if necessary (Uppler PRP requires it for the moment)
         if(this.isBasicAuthEnabled) baseRequestConfig.auth = this.basicAuth;

@@ -11,16 +11,12 @@ export class Order extends Base {
 
     getOrderById(params:{ id:number, expanding?: Array<keyof OrdersExpandingKeys> }) {
         // TODO WIP rework params merge
-        const fullParams = {
-            access_token: 'NTRmNmI2M2VkZWQyZjE0YzFiMmRjYzUxZDgyMjJmMTg4NGZmMWM1NmExZTJhM2ZmMmQ3YmQ5OTg3Yjc3YzYwZQ',
-            ...params
-        };
-        delete (fullParams as any).id;
-
+        const clonedParams = { ...params };
+        delete (clonedParams as any).id;
+        
         return this.requestHandler({
             method: 'get',
-            url: `/v1/administrator/order/${ params.id }`,
-            params: queryParamsStringifier(fullParams)
+            url: `/v1/administrator/order/${ params.id }${ queryParamsStringifier(params) }`
         });
     }
 }

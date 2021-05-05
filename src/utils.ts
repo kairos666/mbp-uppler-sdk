@@ -42,6 +42,6 @@ export function queryParamsStringifier(params:any):string {
         })
         .reduce((flattened, arr) => flattened.concat(arr), []);
 
-    // concat and stringify query string (axios adds the leading '?' itself)
-    return paramsPreQueryString.join('&');
+    // concat and stringify query string
+    return `?${ paramsPreQueryString.join('&') }`;
 }
