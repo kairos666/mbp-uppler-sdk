@@ -10,7 +10,6 @@ export class Order extends Base {
     }
 
     getOrderById(params:{ id:number, expanding?: Array<keyof OrdersExpandingKeys> }) {
-        // TODO WIP rework params merge
         const clonedParams = { ...params };
         delete (clonedParams as any).id;
         
