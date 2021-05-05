@@ -1,33 +1,65 @@
-import axios, { AxiosInstance, AxiosPromise, AxiosRequestConfig } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 
-type Config = {
-    apiKey: string,
-    baseURL: string
+type SDKConfig = {
+    clientID: string,
+    clientSecret: string,
+    baseURL: string,
+    basicAuth?: { username:string, password:string }
 }
 
 export type Pagination = {
     page?: number,
-    per_page?: number,
+    perPage?: number,
 }
 
-export abstract class Base {
-    private apiKey: string;
-    private baseURL: string;
-    private axiosInstance:AxiosInstance;
+export type SortingDirections = 'asc'|'desc';
 
-    constructor(config:Config) {
-        this.apiKey = config.apiKey;
+export abstract class Base {
+    private clientID: string;
+    private clientSecret: string;
+    private basicAuth: { username:string, password:string } | undefined;
+    private baseURL: string;
+    private axios:AxiosInstance;
+
+    constructor(config:SDKConfig) {
+        this.clientID = config.clientID;
+        this.clientSecret = config.clientSecret;
+        this.basicAuth = config.basicAuth;
         this.baseURL = config.baseURL;
-        this.axiosInstance = axios.create({ 
+
+        // generate axios instance with base config
+        this.axios = axios.create({ 
             baseURL: this.baseURL, 
-            headers: {
-                'api-key': this.apiKey,
-                'Content-type': 'application/json'
-            } 
+            headers: { 'Content-type': 'application/json' }
         });
     }
     
-    protected request<T> (endpoint:string, options?:AxiosRequestConfig): AxiosPromise<T> {
-        return this.axiosInstance(endpoint, options);
+    protected requestHandler(requestConfig:AxiosRequestConfig):Promise<any> {
+        const baseRequestConfig:AxiosRequestConfig = {};
+
+        // adds basic auth if necessary (Uppler PRP requires it for the moment)
+        if(this.isBasicAuthEnabled) baseRequestConfig.auth = this.basicAuth;
+
+        return this.axios.request({...baseRequestConfig, ...requestConfig});
+    }
+
+    protected tokenRequestHandler(requestConfig:AxiosRequestConfig):Promise<any> {
+        const baseRequestConfig:AxiosRequestConfig = {
+            data: {
+                client_id: this.clientID,
+                client_secret: this.clientSecret,
+                grant_type: 'client_credentials'
+            },
+            headers: { "Content-Type": 'application/x-www-form-urlencoded' }
+        };
+
+        // adds basic auth if necessary (Uppler PRP requires it for the moment)
+        if(this.isBasicAuthEnabled) baseRequestConfig.auth = this.basicAuth;
+        
+        return this.axios.request({...baseRequestConfig, ...requestConfig});
+    }
+
+    protected get isBasicAuthEnabled():boolean {
+        return !!this.basicAuth;
     }
 }
