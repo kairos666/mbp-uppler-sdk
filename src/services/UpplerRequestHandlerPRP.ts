@@ -1,4 +1,5 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
+import { ILogger } from "./Logger";
 
 type SDKConfig = {
     clientID: string,
@@ -8,11 +9,17 @@ type SDKConfig = {
 }
 
 export default class UpplerRequestHandlerPRP {
+    private token:string = null;
     private config:SDKConfig = null;
     private axiosInstance:AxiosInstance = null;
+    private logger:ILogger;
+
+    constructor(logger:ILogger) {
+        this.logger = logger;
+    }
 
     init(config:SDKConfig) {
-        console.log('UpplerRequestHandlerPRP service instanciated');
+        console.log('UpplerRequestHandlerPRP service initiated');
         this.config = config;
 
         // generate axios instance with base config
@@ -22,8 +29,7 @@ export default class UpplerRequestHandlerPRP {
         });
     }
 
-    public async requestHandler(requestConfig:AxiosRequestConfig):Promise<any> {
-        // TODO WIP dynamic token
+    public async requestHandler(requestConfig:AxiosRequestConfig):Promise<AxiosResponse> {
         const token = await this.getToken();
         const baseRequestConfig:AxiosRequestConfig = {
             params: { access_token: token },
@@ -34,14 +40,34 @@ export default class UpplerRequestHandlerPRP {
     }
 
     private async getToken():Promise<string> {
-        const axiosBaseRequestConfigForTokenGeneration = {
+        // leave early if token already exists
+        if(this.token) return this.token; 
+
+        // otherwise generate new token and register it
+        const axiosBaseRequestConfigForTokenGeneration:AxiosRequestConfig = {
+            method: 'post',
+            url: '/oauth/v2/token',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             data: {
                 client_id: this.config.clientID,
                 client_secret: this.config.clientSecret,
                 grant_type: 'client_credentials'
             },
-            headers: { "Content-Type": 'application/x-www-form-urlencoded' }
+            auth: this.config.basicAuth
         }
-        return 'ODZmNTM3ZGVhOGViOGQ0YzliNDA2MzBiYWVmYjU3YWQyNDRjOTNlYmFlNjY2MDA3YzE1MjdlNjhmY2ZkMzY2OQ';
+
+        // REQUEST logger
+        this.logger.request(axiosBaseRequestConfigForTokenGeneration.url, true);
+        return this.axiosInstance
+            .request(axiosBaseRequestConfigForTokenGeneration)
+            .then(resp => {
+                // register token for reuse
+                this.token = resp.data.access_token;
+
+                // log response
+                this.logger.response(resp)
+
+                return this.token;
+            });
     }
 }

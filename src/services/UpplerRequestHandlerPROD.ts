@@ -11,7 +11,7 @@ export default class UpplerRequestHandlerPROD {
     private axiosInstance:AxiosInstance;
 
     init(config:SDKConfig) {
-        console.log('UpplerRequestHandlerPROD service instanciated');
+        console.log('UpplerRequestHandlerPROD service initiated');
         this.config = config;
 
         // generate axios instance with base config

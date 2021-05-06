@@ -21,6 +21,7 @@
     ],
     "dependencies": {
         "axios": "0.21.1",
-        "bottlejs": "2.0.0"
+        "bottlejs": "2.0.0",
+        "chalk": "4.1.1"
     }
 }

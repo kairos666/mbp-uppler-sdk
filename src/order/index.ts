@@ -9,7 +9,7 @@ export class Order extends Base {
         return queryParamsStringifier(params);
     }
 
-    getOrderById(params:{ id:number, expanding?: Array<keyof OrdersExpandingKeys> }) {
+    getOrderById(params:{ id:number, expanding?: Array<OrdersExpandingKeys> }) {
         const clonedParams = { ...params };
         delete (clonedParams as any).id;
         

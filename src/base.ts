@@ -1,5 +1,6 @@
-import { AxiosError, AxiosRequestConfig } from 'axios';
+import { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { bottle } from './services/bottle';
+import { ILogger } from './services/Logger';
 
 // config type that match both request handlers
 type SDKConfig = {
@@ -7,6 +8,7 @@ type SDKConfig = {
     clientSecret: string,
     baseURL: string,
     basicAuth?: { username:string, password:string }
+    debug?: boolean
 }
 
 export type Pagination = {
@@ -18,6 +20,7 @@ export type SortingDirections = 'asc'|'desc';
 
 export abstract class Base {
     private requestHandlerService:any;
+    private logger:ILogger;
 
     constructor(config:SDKConfig) {
         // choose which request handler to choose (PRP requires basic auth in addition to client credentials grant)
@@ -25,8 +28,25 @@ export abstract class Base {
             ? bottle.container.reqHandlerPRP
             : bottle.container.reqHandlerPROD;
 
+        // setup logger
+        this.logger = bottle.container.logger;
+        this.logger.toggleActivation(!!config.debug);
+
         // init request handler
         this.requestHandlerService.init(config);
+    }
+    
+    protected requestHandler(requestConfig:AxiosRequestConfig):Promise<AxiosResponse> {
+        // REQUEST logger
+        this.logger.request(requestConfig.url);
+        const returnedPromise = this.requestHandlerService.requestHandler(requestConfig);
+
+        // intercept errors and log response
+        returnedPromise
+            .then((resp:AxiosResponse) => this.logger.response(resp))
+            .catch(this.errorHandler);
+        
+        return returnedPromise;
     }
 
     private errorHandler(error:AxiosError) {
@@ -34,32 +54,23 @@ export abstract class Base {
             // The request was made and the server responded with a status code
             // that falls out of the range of 2xx
             case !!error.response:
-                console.log('server response error');
-                console.log(error.response.data);
-                console.log(error.response.status);
-                console.log(error.response.headers);
+                this.logger.serverError(error);
             break;
 
             // The request was made but no response was received
             // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
             // http.ClientRequest in node.js
             case !!error.request:
-                console.log('server unresponsive error');
-                console.log(error.request);
+                this.logger.networkError(error);
             break;
 
             // Something happened in setting up the request that triggered an Error
             default:
-                console.log('unknown ajax error', error.message);
+                this.logger.genericError(error);
         }
     }
-    
-    protected requestHandler(requestConfig:AxiosRequestConfig):Promise<any> {
-        const returnedPromise = this.requestHandlerService.requestHandler(requestConfig);
 
-        // intercept errors
-        returnedPromise.catch(this.errorHandler);
-        
-        return returnedPromise;
+    public set debug(isDebug:boolean) {
+        this.logger.toggleActivation(isDebug);
     }
 }
