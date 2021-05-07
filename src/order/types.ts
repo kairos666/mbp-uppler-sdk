@@ -1,4 +1,4 @@
-import { Pagination, SortingDirections } from "../base";
+import { Pagination, SortingDirections } from "../types";
 
 export type OrderSortingKeys = "id"|"type"|"state"|"buyer"|"seller"|"payment_state"|"shipping_state"|"cart_confirmed_at"|"confirmed_at"|"total";
 

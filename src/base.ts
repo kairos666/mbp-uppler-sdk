@@ -1,25 +1,9 @@
 import { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { bottle } from './services/bottle';
-import { ILogger } from './services/Logger';
-
-// config type that match both request handlers
-type SDKConfig = {
-    clientID: string,
-    clientSecret: string,
-    baseURL: string,
-    basicAuth?: { username:string, password:string }
-    debug?: boolean
-}
-
-export type Pagination = {
-    page?: number,
-    perPage?: number,
-}
-
-export type SortingDirections = 'asc'|'desc';
-
+import { ILogger, IRequestHandler } from './interfaces';
+import { SDKConfig } from './types';
 export abstract class Base {
-    private requestHandlerService:any;
+    private requestHandlerService:IRequestHandler;
     private logger:ILogger;
 
     constructor(config:SDKConfig) {
@@ -44,7 +28,7 @@ export abstract class Base {
         // intercept errors and log response
         returnedPromise
             .then((resp:AxiosResponse) => this.logger.response(resp))
-            .catch(this.errorHandler);
+            .catch(this.errorHandler.bind(this));
         
         return returnedPromise;
     }
