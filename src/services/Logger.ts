@@ -1,15 +1,6 @@
 import { AxiosError, AxiosResponse } from "axios";
 import chalk from 'chalk';
 
-export interface ILogger {
-    toggleActivation:(isActive:boolean) => void,
-    request:(url:string, isTokenReq?:boolean) => void,
-    response:(response:AxiosResponse) => void,
-    serverError:(error:AxiosError) => void,
-    networkError:(error:AxiosError) => void,
-    genericError:(error:AxiosError) => void
-}
-
 export default class Logger {
     private isActive = false;
 
@@ -19,6 +10,22 @@ export default class Logger {
      */
     public toggleActivation(isActive:boolean) {
         this.isActive = isActive;
+    }
+
+    // LOGS
+    public log(...args:any[]) {
+        if(!this.isActive) return;
+        console.log(...args);
+    }
+
+    public info(...args:any[]) {
+        if(!this.isActive) return;
+        console.log(chalk.bgBlue(' INFO '), ...args);
+    }
+
+    public warn(...args:any[]) {
+        if(!this.isActive) return;
+        console.log(chalk.yellow(' WARNING '), ...args);
     }
 
     // TRAFFIC
@@ -34,16 +41,16 @@ export default class Logger {
     public response(response:AxiosResponse) {
         if(!this.isActive) return;
         console.log(chalk.green.inverse(' RESPONSE '));
-        console.log(response.data);
+        console.log(response?.data);
     }
 
     // ERRORS
     public serverError(error:AxiosError) {
         if(!this.isActive) return;
         console.log(`${ chalk.bgRed(' ERROR ') }${ chalk.red(' - server response error') }`);
-        console.log(error.response.data);
-        console.log(error.response.status);
-        console.log(error.response.headers);
+        console.log(error?.response?.data);
+        console.log(error?.response?.status);
+        console.log(error?.response?.headers);
     }
 
     public networkError(error:AxiosError) {
