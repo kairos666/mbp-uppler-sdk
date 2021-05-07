@@ -1,17 +1,19 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
+import { retryRequestWrapper } from "../utils";
+import { ILogger, IRequestHandler } from "../interfaces";
+import { SDKConfig } from "../types";
+export default class UpplerRequestHandlerPROD implements IRequestHandler {
+    private token:string = null;
+    private config:SDKConfig = null;
+    private axiosInstance:AxiosInstance = null;
+    private logger:ILogger;
 
-type SDKConfig = {
-    clientID: string,
-    clientSecret: string,
-    baseURL: string
-}
+    constructor(logger:ILogger) {
+        this.logger = logger;
+    }
 
-export default class UpplerRequestHandlerPROD {
-    private config:SDKConfig;
-    private axiosInstance:AxiosInstance;
-
-    init(config:SDKConfig) {
-        console.log('UpplerRequestHandlerPROD service initiated');
+    public init(config:SDKConfig) {
+        this.logger.info('UpplerRequestHandlerPROD service initiated');
         this.config = config;
 
         // generate axios instance with base config
@@ -21,25 +23,59 @@ export default class UpplerRequestHandlerPROD {
         });
     }
 
-    public async requestHandler(requestConfig:AxiosRequestConfig):Promise<any> {
-        // TODO WIP dynamic token
-        const token = await this.getToken();
-        const baseRequestConfig:AxiosRequestConfig = {
-            params: { access_token: token },
-        };
+    public async requestHandler(requestConfig:AxiosRequestConfig):Promise<AxiosResponse> {
+        // base request handler with N retry (handle token expiration), see https://dev.to/ycmjason/javascript-fetch-retry-upon-failure-3p6g
+        return retryRequestWrapper(requestConfig, this.baseRequestHandler.bind(this), (error:AxiosError) => {
+            // only retry if token expired (401 error code)
+            if(error?.response?.status === 401) {
+                this.logger.info('token probably expired - retry with new token generation');
+                this.token = null;
 
-        return this.axiosInstance.request({...baseRequestConfig, ...requestConfig});
+                return false;
+            }
+
+            // abort retries for other error cases
+            return true;
+        });
+    }
+
+    private async baseRequestHandler(requestConfig:AxiosRequestConfig):Promise<AxiosResponse> {
+        const token = await this.getToken();
+        const completeRequestConfig:AxiosRequestConfig = {...requestConfig};
+        // add authorization header
+        completeRequestConfig.headers['Authorization'] = `Bearer ${ token }`;
+
+        return this.axiosInstance.request(completeRequestConfig);
     }
 
     private async getToken():Promise<string> {
-        const axiosBaseRequestConfigForTokenGeneration = {
+        // leave early if token already exists
+        if(this.token) return this.token; 
+
+        // otherwise generate new token and register it
+        const axiosBaseRequestConfigForTokenGeneration:AxiosRequestConfig = {
+            method: 'post',
+            url: '/oauth/v2/token',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             data: {
                 client_id: this.config.clientID,
                 client_secret: this.config.clientSecret,
                 grant_type: 'client_credentials'
-            },
-            headers: { "Content-Type": 'application/x-www-form-urlencoded' }
+            }
         }
-        return 'ODZmNTM3ZGVhOGViOGQ0YzliNDA2MzBiYWVmYjU3YWQyNDRjOTNlYmFlNjY2MDA3YzE1MjdlNjhmY2ZkMzY2OQ';
+
+        // REQUEST logger
+        this.logger.request(axiosBaseRequestConfigForTokenGeneration.url, true);
+        return this.axiosInstance
+            .request(axiosBaseRequestConfigForTokenGeneration)
+            .then(resp => {
+                // register token for reuse
+                this.token = resp?.data?.access_token ?? null;
+
+                // log response
+                this.logger.response(resp)
+
+                return this.token;
+            });
     }
 }
