@@ -1,3 +1,5 @@
+import { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
+
 export function applyMixins(derivedCtor: any, baseCtors: any[]) {
     baseCtors.forEach(baseCtor => {
         Object.getOwnPropertyNames(baseCtor.prototype).forEach(name => {
@@ -44,4 +46,31 @@ export function queryParamsStringifier(params:any):string {
 
     // concat and stringify query string
     return `?${ paramsPreQueryString.join('&') }`;
+}
+
+/**
+ * make a request handler retryable N times with possible side effect on fail
+ * @param requestConfig request params
+ * @param requestHandler request handler (axios based)
+ * @param failureSideEffectBeforeRetry side effect on failure, abort retries if returns true
+ * @param retryCount retry count (default 1)
+ */
+export async function retryRequestWrapper(requestConfig:AxiosRequestConfig, requestHandler:(requestConfig:AxiosRequestConfig) => Promise<AxiosResponse>, failureSideEffectBeforeRetry?:(error:AxiosError) => boolean, retryCount:number = 1):Promise<AxiosResponse> {
+    for (let i = 0; i <= retryCount; i++) {
+        try {
+            return await requestHandler(requestConfig);
+        } catch (error) {
+            if(i === retryCount) {
+                // failed at last attempt, should throw
+                throw error;
+            } else {
+                // failed but can still retry, execute failure side effect if it exists
+                if(!failureSideEffectBeforeRetry) continue;
+                
+                // failure side effect execution and eventual retry abortion
+                const isRetryAborted = failureSideEffectBeforeRetry(error);
+                if(isRetryAborted) throw error;
+            }
+        }
+    }
 }
