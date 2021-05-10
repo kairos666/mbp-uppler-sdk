@@ -2,7 +2,8 @@ export type SDKConfig = {
     clientID: string,
     clientSecret: string,
     baseURL: string,
-    basicAuth?: { username:string, password:string }
+    maxItemsPerPage: number,
+    basicAuth?: { username:string, password:string },
     debug?: boolean
 }
 

@@ -36,7 +36,7 @@ export function queryParamsStringifier(params:any):string {
             // pre format property value pairs depending on use case
             switch(true) {
                 case key === 'sorting': return sortingQueryBuiler(params[key]);
-                case key === 'filtering': return filteringQueryBuiler(params[key]);
+                case key === 'filtering': console.log(params[key]); return filteringQueryBuiler(params[key]);
                 case key === 'expanding': return expandingQueryBuiler(params[key]);
 
                 default: return [`${ key }=${ params[key] }`];
@@ -73,4 +73,32 @@ export async function retryRequestWrapper(requestConfig:AxiosRequestConfig, requ
             }
         }
     }
+}
+
+/**
+ * extract useful information from response headers
+ * @param respHeaders 
+ */
+export function parseResponseHeadersMeta(respHeaders:any):any {
+    const results:any = {};
+
+    Object.keys(respHeaders).forEach(headerKey => {
+        switch(headerKey) {
+            case 'accept-range': 
+                const splitValue = respHeaders[headerKey].split(' ');
+                results.resource = splitValue[0];
+                results.maxPerPageCount = parseInt(splitValue[1]);
+            break;
+
+            case 'content-range':
+                const splitAValue = respHeaders[headerKey].split('/');
+                const splitBValue = splitAValue[0].split('-');
+                results.firstResourceNb = parseInt(splitBValue[0]);
+                results.lastResourceNb = parseInt(splitBValue[1]);
+                results.totalResourceCount = parseInt(splitAValue[1]);
+            break;
+        }
+    });
+
+    return results;
 }

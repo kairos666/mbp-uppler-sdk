@@ -4,20 +4,22 @@ import { ILogger, IRequestHandler } from './interfaces';
 import { SDKConfig } from './types';
 export abstract class Base {
     private requestHandlerService:IRequestHandler;
-    private logger:ILogger;
+    protected logger:ILogger;
+    protected readonly config:SDKConfig;
 
     constructor(config:SDKConfig) {
+        this.config = config;
         // choose which request handler to choose (PRP requires basic auth in addition to client credentials grant)
-        this.requestHandlerService = (config.basicAuth)
+        this.requestHandlerService = (this.config.basicAuth)
             ? bottle.container.reqHandlerPRP
             : bottle.container.reqHandlerPROD;
 
         // setup logger
         this.logger = bottle.container.logger;
-        this.logger.toggleActivation(!!config.debug);
+        this.logger.toggleActivation(!!this.config.debug);
 
         // init request handler
-        this.requestHandlerService.init(config);
+        this.requestHandlerService.init(this.config);
     }
     
     protected requestHandler(requestConfig:AxiosRequestConfig):Promise<AxiosResponse> {

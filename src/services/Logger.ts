@@ -40,17 +40,16 @@ export default class Logger {
 
     public response(response:AxiosResponse) {
         if(!this.isActive) return;
-        console.log(chalk.green.inverse(' RESPONSE '));
+        console.log(chalk.green.inverse(' RESPONSE '), chalk.green(response?.status));
         console.log(response?.data);
     }
 
     // ERRORS
     public serverError(error:AxiosError) {
         if(!this.isActive) return;
-        console.log(`${ chalk.bgRed(' ERROR ') }${ chalk.red(' - server response error') }`);
-        console.log(error?.response?.data);
-        console.log(error?.response?.status);
+        console.log(`${ chalk.bgRed(' ERROR ') } ${ chalk.red(error?.response?.status) } ${ chalk.red(' - server response error') }`);
         console.log(error?.response?.headers);
+        console.log(error?.response?.data);
     }
 
     public networkError(error:AxiosError) {
