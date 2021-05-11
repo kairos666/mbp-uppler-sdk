@@ -1,15 +1,18 @@
 import { AxiosError, AxiosResponse } from "axios";
 import chalk from 'chalk';
+import { ILogger } from "../interfaces";
 
-export default class Logger {
+export default class Logger implements ILogger {
     private isActive = false;
+    private expandResponses = false;
 
     /**
      * toggle on/off SDK logger
      * @param isActive 
      */
-    public toggleActivation(isActive:boolean) {
-        this.isActive = isActive;
+    public toggleActivation(debugLevel:0|1|2) {
+        this.isActive = (debugLevel >= 1);
+        this.expandResponses = (debugLevel >= 2);
     }
 
     // LOGS
@@ -41,7 +44,7 @@ export default class Logger {
     public response(response:AxiosResponse) {
         if(!this.isActive) return;
         console.log(chalk.green.inverse(' RESPONSE '), chalk.green(response?.status));
-        console.log(response?.data);
+        if(this.expandResponses) console.log(response?.data);
     }
 
     // ERRORS

@@ -36,7 +36,7 @@ export function queryParamsStringifier(params:any):string {
             // pre format property value pairs depending on use case
             switch(true) {
                 case key === 'sorting': return sortingQueryBuiler(params[key]);
-                case key === 'filtering': console.log(params[key]); return filteringQueryBuiler(params[key]);
+                case key === 'filtering': return filteringQueryBuiler(params[key]);
                 case key === 'expanding': return expandingQueryBuiler(params[key]);
 
                 default: return [`${ key }=${ params[key] }`];

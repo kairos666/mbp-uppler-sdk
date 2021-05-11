@@ -16,7 +16,7 @@ export abstract class Base {
 
         // setup logger
         this.logger = bottle.container.logger;
-        this.logger.toggleActivation(!!this.config.debug);
+        this.logger.toggleActivation(this.config.debug);
 
         // init request handler
         this.requestHandlerService.init(this.config);
@@ -56,7 +56,7 @@ export abstract class Base {
         }
     }
 
-    public set debug(isDebug:boolean) {
+    public set debug(isDebug:0|1|2) {
         this.logger.toggleActivation(isDebug);
     }
 }

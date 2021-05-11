@@ -2,7 +2,7 @@ import { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import { SDKConfig } from "./types";
 
 export interface ILogger {
-    toggleActivation:(isActive:boolean) => void,
+    toggleActivation:(debugLevel:0|1|2) => void,
     log:(...args:any[]) => void,
     info:(...args:any[]) => void,
     warn:(...args:any[]) => void,
