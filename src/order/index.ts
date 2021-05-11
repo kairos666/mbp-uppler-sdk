@@ -1,8 +1,6 @@
 import { Base } from '../base';
 import { parseResponseHeadersMeta, queryParamsStringifier } from '../utils';
 import { SearchOrdersParams, OrdersExpandingKeys } from './types';
-
-const resourceName = 'orders';
 export class Order extends Base {
     async getOrders(params:SearchOrdersParams) {
         // response code 200 = all results, code 206 = single page in multi pages results
