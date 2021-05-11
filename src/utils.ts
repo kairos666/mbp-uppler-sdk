@@ -1,4 +1,6 @@
 import { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
+import { ILogger } from "./interfaces";
+import { ReqHandlerFunc, SDKConfig } from "./types";
 
 export function applyMixins(derivedCtor: any, baseCtors: any[]) {
     baseCtors.forEach(baseCtor => {
@@ -101,4 +103,37 @@ export function parseResponseHeadersMeta(respHeaders:any):any {
     });
 
     return results;
+}
+
+/**
+ * a helper wrapper function that handle paginated resources to extract the full list
+ * @param getResourceHandler 
+ * @param config 
+ * @param logger 
+ * @returns Promise<AxiosResponse>
+ */
+export function getAllResourcesFrom<P>(getResourceHandler:ReqHandlerFunc<P>, config:SDKConfig, logger:ILogger):ReqHandlerFunc<P>  {
+    return async (params) => {
+        //1. get first page with maxItemsPerPage
+        const firstQueryReq = await getResourceHandler({ ...params, perPage: config.maxItemsPerPage, page: 1 });
+
+        //2. evaluate if more pages are available for this resource (response headers indicate how many results possible)
+        const metaResourcesInfo = parseResponseHeadersMeta(firstQueryReq.headers);
+        const totalResourcePages = Math.ceil(metaResourcesInfo.totalResourceCount / config.maxItemsPerPage);
+        if(metaResourcesInfo.maxPerPageCount !== config.maxItemsPerPage) logger.warn(`${ metaResourcesInfo.resource } resource has a maxPerPageCount of ${ metaResourcesInfo.maxPerPageCount } (config is ${ config.maxItemsPerPage })`);
+
+        //3. if no more pages return results, if more pages call all missing pages in parralel
+        if(totalResourcePages <= 1) return firstQueryReq;
+        const missingPageIndexes = [...Array(totalResourcePages + 1).keys()].slice(2);
+        logger.info(`Need to extract ${ totalResourcePages - 1 } more pages`);
+        
+        //4. once all results arrived merged response array and reply
+        const otherQueryReqs = await Promise.all(missingPageIndexes.map(pageIndex => getResourceHandler({ ...params, perPage: config.maxItemsPerPage, page: pageIndex })));
+        const concatenatedResponses = otherQueryReqs.map(resp => resp.data);
+        
+        const allOrders = [...firstQueryReq.data, ...[].concat(...concatenatedResponses)];
+        firstQueryReq.data = allOrders;
+
+        return firstQueryReq;
+    }
 }

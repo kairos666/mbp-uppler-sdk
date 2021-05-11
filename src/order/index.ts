@@ -1,5 +1,5 @@
 import { Base } from '../base';
-import { parseResponseHeadersMeta, queryParamsStringifier } from '../utils';
+import { getAllResourcesFrom, queryParamsStringifier } from '../utils';
 import { SearchOrdersParams, OrdersExpandingKeys } from './types';
 export class Order extends Base {
     async getOrders(params:SearchOrdersParams) {
@@ -11,27 +11,7 @@ export class Order extends Base {
     }
 
     async getAllOrders(params:SearchOrdersParams) {
-        //1. get first page with maxItemsPerPage
-        const firstQueryReq = await this.getOrders({ ...params, perPage: this.config.maxItemsPerPage, page: 1 });
-
-        //2. evaluate if more pages are available for this resource (response headers indicate how many results possible)
-        const metaResourcesInfo = parseResponseHeadersMeta(firstQueryReq.headers);
-        const totalResourcePages = Math.ceil(metaResourcesInfo.totalResourceCount / this.config.maxItemsPerPage);
-        if(metaResourcesInfo.maxPerPageCount !== this.config.maxItemsPerPage) this.logger.warn(`${ metaResourcesInfo.resource } resource has a maxPerPageCount of ${ metaResourcesInfo.maxPerPageCount } (config is ${ this.config.maxItemsPerPage })`);
-
-        //3. if no more pages return results, if more pages call all missing pages in parralel
-        if(totalResourcePages === 1) return firstQueryReq;
-        const missingPageIndexes = [...Array(totalResourcePages + 1).keys()].slice(2);
-        this.logger.info(`Need to extract ${ totalResourcePages - 1 } more pages`);
-        
-        //4. once all results arrived merged response array and reply
-        const otherQueryReqs = await Promise.all(missingPageIndexes.map(pageIndex => this.getOrders({ ...params, perPage: this.config.maxItemsPerPage, page: pageIndex })));
-        const concatenatedResponses = otherQueryReqs.map(resp => resp.data);
-        
-        const allOrders = [...firstQueryReq.data, ...[].concat(...concatenatedResponses)];
-        firstQueryReq.data = allOrders;
-
-        return firstQueryReq;
+        return getAllResourcesFrom(this.getOrders.bind(this), this.config, this.logger)(params);
     }
 
     async getOrderById(params:{ id:number, expanding?: Array<OrdersExpandingKeys> }) {

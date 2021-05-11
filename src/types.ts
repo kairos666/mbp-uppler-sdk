@@ -1,3 +1,8 @@
+import { AxiosResponse } from "axios";
+
+// generic request handler function signature
+export type ReqHandlerFunc<P> = (params:P) => Promise<AxiosResponse>
+
 export type SDKConfig = {
     clientID: string,
     clientSecret: string,
