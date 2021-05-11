@@ -1,6 +1,6 @@
 import { Base } from '../base';
 import { getAllResourcesFrom, queryParamsStringifier } from '../utils';
-import { SearchSubscriptionsParams, SubscriptionsExpandingKeys } from './types';
+import { SearchSubscriptionsParams } from './types';
 export class Subscription extends Base {
     async getSubscriptions(params:SearchSubscriptionsParams) {
         // response code 200 = all results, code 206 = single page in multi pages results
@@ -14,7 +14,7 @@ export class Subscription extends Base {
         return getAllResourcesFrom(this.getSubscriptions.bind(this), this.config, this.logger)(params);
     }
 
-    async getSubscriptionById(params:{ id:number, expanding?: Array<SubscriptionsExpandingKeys> }) {
+    async getSubscriptionById(params:{ id:number }) {
         const clonedParams = { ...params };
         delete (clonedParams as any).id;
         
