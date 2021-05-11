@@ -1,6 +1,6 @@
 import { AxiosResponse } from "axios";
 
-// generic request handler function signature
+// generic request handler function signature (SDK resources sub level)
 export type ReqHandlerFunc<P> = (params:P) => Promise<AxiosResponse>
 
 export type SDKConfig = {

@@ -13,6 +13,7 @@ export interface ILogger {
     genericError:(error:AxiosError) => void
 }
 
+// SDK base level
 export interface IRequestHandler {
     init: (config:SDKConfig) => void
     requestHandler: (requestConfig:AxiosRequestConfig) => Promise<AxiosResponse>
