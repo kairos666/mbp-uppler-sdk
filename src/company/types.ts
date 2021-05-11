@@ -1,13 +1,27 @@
 import { Pagination, SortingDirections } from "../types";
 
-export type CompanySortingKeys = "id"|"type"|"state"|"buyer"|"seller"|"payment_state"|"shipping_state"|"cart_confirmed_at"|"confirmed_at"|"total";
+/* BUYERS */
+// no sorting
 
-export type CompanysFilteringKeys = "type"|"state"|"buyer"|"seller"|"payment_state"|"shipping_state"|"cart_confirmed_from"|"cart_confirmed_to"|"confirmed_from"|"confirmed_to"|"external_id"|"token";
+export type BuyersFilteringKeys = "external_id"|"name"|"username"|"email";
 
-export type CompanysExpandingKeys = "buyer"|"seller"|"buyer_user"|"seller_user"|"items"|"shipments"|"variant";
+export type BuyersExpandingKeys = "accounts"|"files"|"subscriptions"|"dynamicFields";
 
-export type SearchCompanysParams = Pagination & {
-    sorting?: Array<[CompanySortingKeys, SortingDirections]>,
-    filtering?: Array<[CompanysFilteringKeys, string[]]>,
-    expanding?: Array<CompanysExpandingKeys>
+export type SearchBuyersParams = Pagination & {
+    filtering?: Array<[BuyersFilteringKeys, string[]]>,
+    expanding?: Array<BuyersExpandingKeys>
 }
+
+/* SELLERS */
+export type SellerSortingKeys = "external_id"|"name"|"created_at"|"updated_at";
+
+export type SellersFilteringKeys = "external_id"|"name"|"username"|"email"|"created_from"|"created_to"|"updated_from"|"updated_to";
+
+export type SellersExpandingKeys = "accounts"|"files"|"subscriptions"|"dynamicFields";
+
+export type SearchSellersParams = Pagination & {
+    sorting?: Array<[SellerSortingKeys, SortingDirections]>,
+    filtering?: Array<[SellersFilteringKeys, string[]]>,
+    expanding?: Array<SellersExpandingKeys>
+}
+
