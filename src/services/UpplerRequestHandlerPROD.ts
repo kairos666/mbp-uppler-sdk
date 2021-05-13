@@ -3,7 +3,7 @@ import { retryRequestWrapper } from "../utils";
 import { ILogger, IRequestHandler } from "../interfaces";
 import { SDKConfig } from "../types";
 export default class UpplerRequestHandlerPROD implements IRequestHandler {
-    private token:string = null;
+    private token:Promise<string> = null;
     private config:SDKConfig = null;
     private axiosInstance:AxiosInstance = null;
     private logger:ILogger;
@@ -66,16 +66,17 @@ export default class UpplerRequestHandlerPROD implements IRequestHandler {
 
         // REQUEST logger
         this.logger.request(axiosBaseRequestConfigForTokenGeneration.url, true);
-        return this.axiosInstance
+        
+        // register token promise for reuse
+        this.token = this.axiosInstance
             .request(axiosBaseRequestConfigForTokenGeneration)
             .then(resp => {
-                // register token for reuse
-                this.token = resp?.data?.access_token ?? null;
-
-                // log response
+                // log token response
                 this.logger.response(resp)
 
-                return this.token;
+                return resp?.data?.access_token ?? null;
             });
+
+        return this.token;
     }
 }
