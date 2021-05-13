@@ -5,7 +5,7 @@ import { Pagination, SortingDirections } from "../types";
 
 export type BuyersFilteringKeys = "external_id"|"name"|"username"|"email";
 
-export type BuyersExpandingKeys = "accounts"|"files"|"subscriptions"|"dynamicFields";
+export type BuyersExpandingKeys = "files"|"subscriptions"|"dynamicFields";
 
 export type SearchBuyersParams = Pagination & {
     filtering?: Array<[BuyersFilteringKeys, string[]]>,
