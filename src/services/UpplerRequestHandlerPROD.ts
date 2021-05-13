@@ -43,7 +43,7 @@ export default class UpplerRequestHandlerPROD implements IRequestHandler {
         const token = await this.getToken();
         const completeRequestConfig:AxiosRequestConfig = {...requestConfig};
         // add authorization header
-        completeRequestConfig.headers['Authorization'] = `Bearer ${ token }`;
+        completeRequestConfig.headers = {...completeRequestConfig.headers, Authorization: `Bearer ${ token }` };
 
         return this.axiosInstance.request(completeRequestConfig);
     }
