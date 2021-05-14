@@ -1,6 +1,6 @@
 {
     "name": "mbp-uppler-sdk",
-    "version": "0.1.O",
+    "version": "0.1.1",
     "description": "Uppler API custom typescript SDK",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
